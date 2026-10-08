@@ -2,21 +2,12 @@
 
 ## Current State
 
-Phase: 5 — Iterative Investigation / Follow-up Search
+Phase: 6 — Final Reasoning / Evidence-backed Conclusion
 Status: COMPLETE
 
 Lead: Siddarth
 QA: QA/Testing Co-Hacker
 Docs: Product/Documentation Co-Hacker
-
-Acceptance:
-- Supabase Follow-up Queries & Iteration migrations deployed (PASS)
-- Bounded execution up to 3 iterations (PASS)
-- Follow-up query generation (PASS)
-- New evidence detection & deduplication (PASS)
-- Iterative LLM assessment calls (PASS)
-- Handling of Provider Failures (PASS)
-- Unit and live integration tests pass (PASS)
 
 ## Coordination Rule
 
@@ -27,37 +18,39 @@ QA and Docs become active when a stable checkpoint is available. They may prepar
 ## Phase Update Template
 
 ```text
-Phase: 5 — Iterative Investigation / Follow-up Search
+Phase: 6 — Final Reasoning / Evidence-backed Conclusion
 Status: COMPLETE
 
 Lead:
-- Extended InvestigationOpenQuestion schema to track resolution.
-- Added InvestigationFollowUpQuery domain model.
-- Created `20261008000500_phase5_iterative_investigation.sql` for iteration_count and follow_up_queries tracking.
-- Deployed migration via `npx supabase db push`.
-- Updated `InvestigationRepository` to persist open questions, follow-up queries, and iteration_count.
-- Rewrote `InvestigationService` to implement a bounded iterative loop (Question → Analysis → Retrieval → Extraction → Open Questions → Follow-up Queries → Repeat).
-- Optimized LLM calls per iteration via `IterationAssessment`.
+- Defined InvestigationConclusion, InvestigationFinding, TimelineEvent, and SourceReference models (`backend/app/schemas/conclusion.py`).
+- Created `20261008000600_phase6_conclusion_schema.sql` migration for the conclusion tables and RLS policies.
+- Pushed the migration to the live Supabase instance.
+- Implemented `ConclusionRepository` (`backend/app/repositories/conclusion_repo.py`) for persistence.
+- Built `ReasoningService` (`backend/app/services/reasoning_service.py`) to construct a deterministic timeline, identify sources, and perform a single bounded LLM synthesis call.
+- Enforced hard no-fabrication and causation-softening gates in the reasoning service.
+- Extended `POST /api/investigations` and `GET /api/investigations/{id}` to return the final conclusion (`InvestigationStateWithConclusion`).
+- Added a new `POST /api/investigations/{id}/conclude` endpoint to explicitly trigger or re-run reasoning.
 
 QA:
-- Updated `test_investigation.py` to assert new Phase 5 behavior, bounding loops to 1 iteration during mocked tests to verify functionality without hanging.
-- Added `test_live_phase5.py` to outline manual live testing structure for B/C acceptance criteria.
-- Ensured failure modes (like rate limit provider failures) resolve to `INVESTIGATION_PROVIDER_FAILURE` appropriately without crashing.
-- Tests pass (66/66) demonstrating Phase 5 works.
+- Implemented extensive deterministic and mocked-LLM unit tests in `backend/tests/test_reasoning.py` covering timeline extraction, causation mitigation, contradiction handling, and the provider-limited fallback.
+- Validated all 92/92 tests pass.
+- Verified prior phase regressions (Phase 2, 3, 4, 5).
+- Live Gemini API calls were explicitly omitted to conserve quota as instructed; behavior verified via mocked responses mirroring expected outputs.
 
 Docs:
 - Updated CURRENT_PHASE.md.
 
 Acceptance / Verification Notes:
-- All unit tests passed (66/66).
-- Follow-up queries and iterative state are tracked cleanly in Supabase.
-- Deduplication behavior ensures the model does not endlessly retrieve the same chunks.
+- Traceability: Findings without evidence references are automatically downgraded to INFERRED with LOW confidence.
+- Causation vs Temporal: Causal phrases (e.g. "caused by") in LLM outputs are deterministically rewritten to temporal phrases (e.g. "temporally associated with") unless explicitly supported.
+- Contradictions: Preserves all sources and contexts without arbitrary overrides.
+- Provider Failures: Safely falls back to a deterministic finding extraction if the LLM call fails (e.g., 503 UNAVAILABLE), preserving the investigation state and generating a PROVIDER_LIMITED conclusion.
 
 Known Blockers:
-- Live LLM quota testing continues to hit strict limits on the Gemini free tier.
+- None. Live tests deferred to save quota.
 
 Latest Stable Commit:
-Ready for Phase 5 Checkpoint Commit
+Ready for Phase 6 Checkpoint Commit
 ```
 
 ## Status Values

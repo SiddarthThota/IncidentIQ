@@ -114,3 +114,11 @@ class InvestigationState(BaseModel):
 
 class InvestigationCreate(BaseModel):
     question: str
+
+# Forward reference — conclusion lives in conclusion.py to avoid circular imports.
+# InvestigationState exposes it as optional Any to keep schemas decoupled.
+from typing import Any as _Any
+
+class InvestigationStateWithConclusion(InvestigationState):
+    """Extended state returned by the API that includes the final conclusion."""
+    conclusion: Optional[_Any] = None  # InvestigationConclusion when available
