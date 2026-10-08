@@ -5,8 +5,10 @@ class Settings(BaseSettings):
     supabase_url: str
     supabase_secret_key: str
     openai_api_key: Optional[str] = None
+    gemini_api_key: Optional[str] = None
     llm_model: Optional[str] = None
-    embedding_model: Optional[str] = None
+    embedding_model: str = "gemini-embedding-2"
+    embedding_dimension: int = 1536
     frontend_url: str = "http://localhost:5173"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")

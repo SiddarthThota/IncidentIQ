@@ -3,4 +3,7 @@ uvicorn
 pydantic
 supabase
 python-dotenv
-# Additional ML/Embeddings libraries to be decided
+openai
+tiktoken
+google-genai
+pydantic-settings

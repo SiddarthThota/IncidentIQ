@@ -6,6 +6,7 @@ import os
 os.environ["SUPABASE_URL"] = "https://dummy.supabase.co"
 os.environ["SUPABASE_SECRET_KEY"] = "dummy_secret"
 os.environ["OPENAI_API_KEY"] = "dummy_openai"
+os.environ["GEMINI_API_KEY"] = "dummy_gemini"
 
 from main import app
 from app.core.config import Settings
