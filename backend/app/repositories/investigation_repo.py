@@ -278,5 +278,13 @@ class InvestigationRepository:
             
         return state
 
+    def list_investigations(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        res = self.client.table("investigations") \
+            .select("id, original_question, status, iteration_count, created_at, updated_at") \
+            .order("created_at", desc=True) \
+            .range(offset, offset + limit - 1) \
+            .execute()
+        return res.data or []
+
 def get_investigation_repo() -> InvestigationRepository:
     return InvestigationRepository()

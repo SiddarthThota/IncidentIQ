@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from typing import Any
+from typing import Any, List
 from uuid import UUID
 
 from app.schemas.investigation import InvestigationCreate, InvestigationState, InvestigationStateWithConclusion
@@ -58,6 +58,34 @@ def create_investigation(
             pass
 
     return InvestigationStateWithConclusion(**state.model_dump(), conclusion=conclusion)
+
+
+@router.get("", response_model=List[dict])
+def list_investigations(
+    limit: int = 50,
+    offset: int = 0,
+    service: InvestigationService = Depends(get_investigation_svc),
+    reasoning: ReasoningService = Depends(get_reasoning_svc)
+) -> Any:
+    """
+    List past investigations with status and conclusion summary if available.
+    """
+    items = service.repo.list_investigations(limit=limit, offset=offset)
+    enriched = []
+    for item in items:
+        entry = dict(item)
+        inv_id_str = item.get("id")
+        if inv_id_str:
+            try:
+                c = reasoning.repo.get_conclusion(UUID(inv_id_str))
+                if c:
+                    entry["conclusion_status"] = c.conclusion_status
+                    entry["confidence"] = c.confidence
+                    entry["summary"] = c.summary
+            except Exception:
+                pass
+        enriched.append(entry)
+    return enriched
 
 
 @router.get("/{investigation_id}", response_model=InvestigationStateWithConclusion)

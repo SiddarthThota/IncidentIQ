@@ -9,11 +9,20 @@ import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
 import { Dashboard } from './pages/Dashboard'
 import { NewInvestigation } from './pages/NewInvestigation'
+import { InvestigationDetail } from './pages/InvestigationDetail'
 import { History } from './pages/History'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 30, // 30 seconds
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
-function App() {
+export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -23,11 +32,14 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
 
-            {/* Protected Routes */}
+            {/* Protected Operational Routes */}
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/investigate" element={<NewInvestigation />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/investigate" element={<Navigate to="/investigations/new" replace />} />
+                <Route path="/investigations/new" element={<NewInvestigation />} />
+                <Route path="/investigations/:id" element={<InvestigationDetail />} />
                 <Route path="/history" element={<History />} />
               </Route>
             </Route>
