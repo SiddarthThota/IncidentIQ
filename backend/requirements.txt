@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+pydantic
+supabase
+python-dotenv
+# Additional ML/Embeddings libraries to be decided
