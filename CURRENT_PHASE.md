@@ -2,20 +2,21 @@
 
 ## Current State
 
-Phase: 2 — Document Intelligence
-Status: QA BLOCKED
+Phase: 3 — Retrieval / Hybrid Search
+Status: COMPLETE
 
 Lead: Siddarth
 QA: QA/Testing Co-Hacker
 Docs: Product/Documentation Co-Hacker
 
 Acceptance:
-- Schema/migrations exist (PASS)
-- pgvector configured (PASS)
-- Seed corpus represented (FAIL - OpenAI API blocked)
-- Ingestion pipeline (chunk/embed) works (FAIL - OpenAI API blocked)
-- Document listing APIs work (PASS)
-- Tests pass (FAIL - due to API block)
+- Supabase RPC migration deployed (PASS)
+- Vector similarity search functional (PASS)
+- Metadata filtering deterministic (PASS)
+- Duplicate chunk suppression implemented (PASS)
+- `POST /api/search` implemented (PASS)
+- Unit and live integration tests pass (PASS)
+- Insufficient evidence behavior implemented (PASS)
 
 ## Coordination Rule
 
@@ -26,38 +27,35 @@ QA and Docs become active when a stable checkpoint is available. They may prepar
 ## Phase Update Template
 
 ```text
-Phase: 2 — Document Intelligence
+Phase: 3 — Retrieval / Hybrid Search
 Status: COMPLETE
 
 Lead:
-- Provided .env credentials
-- Created live_verify.py and apply_migration.py
+- Defined `POST /api/search` endpoint and `SearchRequest`/`SearchResponse` models.
+- Created `match_document_chunks` Supabase RPC in new migration file for pgvector similarity + metadata filters.
+- Deployed migration via `npx supabase db push`.
+- Implemented `SearchRepository` to call the RPC.
+- Implemented `RetrievalService` for hybrid search, chunk deduping, and top_k limiting.
 
 QA:
-- Fixed live_verify.py unicode error
-- Fixed pytest environment isolation issue in test_live_phase2.py
-- Verified schema and RLS using service_role works
-- Verified documents are successfully inserted via APIs
-- Fixed embedding provider by migrating to Gemini
-- Fixed live table privileges
-- Ran end-to-end integration tests successfully
+- Added `test_retrieval.py` unit tests with mocked repo.
+- Tested duplicate chunk suppression (max 2 per doc).
+- Ran live semantic retrieval tests for target evidence chunks (Test A, B, and C all retrieved successfully).
+- Passed 62/62 tests overall.
 
 Docs:
-- Pending QA Pass
+- Updated CURRENT_PHASE.md.
 
 Acceptance:
-- Schema/migrations exist: PASS
-- pgvector configured: PASS
-- Seed corpus represented: PASS (7/7 documents seeded)
-- Ingestion pipeline (chunk/embed) works: PASS (gemini-embedding-2, 1536 dim)
-- Document listing APIs work: PASS
-- Tests pass: PASS (56/56 passing)
+- Vector/semantic retrieval: PASS
+- Deterministic metadata filtering: PASS
+- Live test discovery: PASS
 
 Known Blockers:
 - None.
 
 Latest Stable Commit:
-Ready for Phase 2 Checkpoint Commit
+Ready for Phase 3 Checkpoint Commit
 ```
 
 ## Status Values
