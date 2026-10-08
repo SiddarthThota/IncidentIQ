@@ -220,7 +220,7 @@ describe('Investigation Experience Component Tests', () => {
 
     render(<TimelineView timeline={timeline} />)
 
-    expect(screen.getByText('Evidence Chronology & Timeline')).toBeInTheDocument()
+    expect(screen.getByText('TIMELINE')).toBeInTheDocument()
     expect(screen.getByText('Event Date: 2026-09-15')).toBeInTheDocument()
     expect(screen.getByText('Document Published: 2026-09-17')).toBeInTheDocument()
     expect(screen.getByText('Orders API v2.8.1 deployed to production')).toBeInTheDocument()
@@ -414,7 +414,7 @@ describe('Page Integration Tests', () => {
     const textarea = screen.getByRole('textbox')
     fireEvent.change(textarea, { target: { value: 'Why did the service fail?' } })
 
-    const submitBtn = screen.getByRole('button', { name: /Launch Investigation/i })
+    const submitBtn = screen.getByRole('button', { name: /Start Investigation/i })
     fireEvent.click(submitBtn)
 
     await waitFor(() => {

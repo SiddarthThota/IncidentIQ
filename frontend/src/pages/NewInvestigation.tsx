@@ -63,7 +63,7 @@ export function NewInvestigation() {
           <Sparkles className="w-3.5 h-3.5" /> IncidentIQ Investigation Engine
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-          New Operational Incident Investigation
+          What are you investigating?
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
           Enter an operational incident question. IncidentIQ performs semantic and metadata-aware retrieval,
@@ -123,23 +123,35 @@ export function NewInvestigation() {
               Traceable conclusion with strict causation guardrails
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting || !question.trim() || isOverLimit}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Investigating Incident...
-                </>
-              ) : (
-                <>
-                  <Search className="w-4 h-4" />
-                  Launch Investigation
-                </>
+            <div className="flex items-center gap-2">
+              {question.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setQuestion('')}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Clear
+                </button>
               )}
-            </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || !question.trim() || isOverLimit}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Investigating...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4" />
+                    Start Investigation
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </form>
 

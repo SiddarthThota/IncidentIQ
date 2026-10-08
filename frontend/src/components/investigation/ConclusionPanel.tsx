@@ -98,12 +98,15 @@ export function ConclusionPanel({ conclusion, findings = [], onSelectDocument }:
         <div className="flex items-center gap-3">
           {statusConfig.icon}
           <div>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              Final Investigation Synthesis
+            <span className="text-[10px] font-mono uppercase tracking-widest text-ai">
+              TRACEABLE CONCLUSION
             </span>
-            <h2 className="text-lg font-bold text-foreground tracking-tight">
+            <h2 className="text-xl font-bold text-foreground tracking-tight">
               {statusConfig.title}
             </h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Evidence-backed answer with an auditable reasoning trail
+            </p>
           </div>
         </div>
 

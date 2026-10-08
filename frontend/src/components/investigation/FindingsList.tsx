@@ -1,12 +1,13 @@
 import { CheckCircle2, Shield, AlertTriangle, HelpCircle, Layers, FileText } from 'lucide-react'
-import type { InvestigationFinding } from '../../types/investigation'
+import type { InvestigationFinding, SourceReference } from '../../types/investigation'
 
 interface FindingsListProps {
   findings: InvestigationFinding[]
+  sourceReferences?: SourceReference[]
   onSelectDocument?: (documentId: string, sourceLabel?: string) => void
 }
 
-export function FindingsList({ findings, onSelectDocument }: FindingsListProps) {
+export function FindingsList({ findings, sourceReferences = [], onSelectDocument }: FindingsListProps) {
   if (!findings || findings.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card p-6 text-center text-muted-foreground text-sm">
@@ -76,15 +77,21 @@ export function FindingsList({ findings, onSelectDocument }: FindingsListProps) 
     }
   }
 
+  const getSourceLabel = (docId: string) => {
+    const ref = sourceReferences.find(sr => sr.document_id === docId)
+    return ref?.source_label || docId.slice(0, 8) + '...'
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-base font-semibold text-foreground tracking-tight">
-            Key Investigation Findings
+          <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            <Layers className="w-5 h-5 text-ai" />
+            EVIDENCE SYNTHESIS
           </h2>
-          <p className="text-xs text-muted-foreground">
-            Plain-language claims classified by evidentiary grounding and certainty
+          <p className="text-xs text-muted-foreground mt-1">
+            How the investigation connected and evaluated the evidence
           </p>
         </div>
         <span className="text-xs font-mono text-muted-foreground px-2 py-0.5 rounded bg-muted border border-border">
@@ -153,7 +160,7 @@ export function FindingsList({ findings, onSelectDocument }: FindingsListProps) 
                         title="Click to view verified source"
                       >
                         <FileText className="w-3 h-3 text-primary" />
-                        {String(docId).slice(0, 8)}...
+                        {getSourceLabel(String(docId))}
                       </button>
                     ))}
                   </div>

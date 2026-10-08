@@ -26,15 +26,20 @@ export function Dashboard() {
 
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-            IncidentIQ
+            Investigate incidents with evidence, not guesses.
           </h1>
-          <p className="text-base font-medium text-primary tracking-tight">
-            Evidence-backed operational investigation
-          </p>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl pt-1">
-            Ask a natural-language operational question. IncidentIQ searches evidence, investigates follow-up
-            questions, compares historical context, and produces a traceable conclusion.
+            Search operational evidence, follow discovered leads, compare historical context, and produce traceable conclusions.
           </p>
+        </div>
+
+        {/* Visual Pipeline */}
+        <div className="flex items-center gap-2 pt-2 text-xs font-mono font-medium text-muted-foreground uppercase tracking-wider overflow-x-auto">
+          <span className="text-ai">ASK</span> <ArrowRight className="w-3 h-3" />
+          <span className="text-ai">SEARCH</span> <ArrowRight className="w-3 h-3" />
+          <span className="text-ai">INVESTIGATE</span> <ArrowRight className="w-3 h-3" />
+          <span className="text-ai">VERIFY</span> <ArrowRight className="w-3 h-3" />
+          <span className="text-emerald-400">CONCLUDE</span>
         </div>
 
         {/* Primary and Secondary CTA Buttons */}
@@ -43,14 +48,14 @@ export function Dashboard() {
             to="/investigations/new"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-all shadow-xs"
           >
-            <Search className="w-4 h-4" /> New Investigation
+            <Search className="w-4 h-4" /> Start Investigation
           </Link>
 
           <Link
             to="/history"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/80 transition-colors border border-border"
           >
-            <History className="w-4 h-4" /> Investigation History
+            <History className="w-4 h-4" /> View Investigation History
           </Link>
         </div>
       </div>

@@ -22,10 +22,11 @@ export function TimelineView({ timeline, onSelectDocument }: TimelineViewProps) 
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-base font-semibold text-foreground tracking-tight">
-            Evidence Chronology & Timeline
+          <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            <Clock className="w-5 h-5 text-primary" />
+            TIMELINE
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground mt-1">
             Strict separation between operational Event Dates and document publication dates
           </p>
         </div>

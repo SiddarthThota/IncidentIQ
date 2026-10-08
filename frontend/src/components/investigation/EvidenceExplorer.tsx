@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
-import type { InvestigationEvidence } from '../../types/investigation'
+import { ChevronDown, ChevronUp, ExternalLink, Layers } from 'lucide-react'
+import type { InvestigationEvidence, SourceReference } from '../../types/investigation'
 
 interface EvidenceExplorerProps {
   evidence: InvestigationEvidence[]
+  sourceReferences?: SourceReference[]
   onSelectDocument?: (documentId: string, sourceLabel?: string) => void
 }
 
-export function EvidenceExplorer({ evidence, onSelectDocument }: EvidenceExplorerProps) {
+export function EvidenceExplorer({ evidence, sourceReferences = [], onSelectDocument }: EvidenceExplorerProps) {
   const [expandedChunks, setExpandedChunks] = useState<Record<string, boolean>>({})
 
   if (!evidence || evidence.length === 0) {
@@ -39,14 +40,20 @@ export function EvidenceExplorer({ evidence, onSelectDocument }: EvidenceExplore
     }
   }
 
+  const getSourceLabel = (docId: string) => {
+    const ref = sourceReferences.find(sr => sr.document_id === docId)
+    return ref?.source_label || null
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-base font-semibold text-foreground tracking-tight">
+          <h2 className="text-base font-semibold text-foreground tracking-tight flex items-center gap-2">
+            <Layers className="w-4 h-4 text-primary" />
             Retrieved Evidence Explorer
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground mt-1">
             Verifiable document chunks and claim extractions retrieved by semantic & metadata search
           </p>
         </div>
@@ -59,6 +66,7 @@ export function EvidenceExplorer({ evidence, onSelectDocument }: EvidenceExplore
         {evidence.map((ev, idx) => {
           const chunkKey = String(ev.chunk_id || ev.id || idx)
           const isExpanded = !!expandedChunks[chunkKey]
+          const readableSource = getSourceLabel(String(ev.document_id))
 
           return (
             <div
@@ -70,11 +78,13 @@ export function EvidenceExplorer({ evidence, onSelectDocument }: EvidenceExplore
                 <div className="flex items-center gap-2">
                   {/* Source Label or Document ID */}
                   <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-primary/15 text-primary border border-primary/20">
-                    {ev.source || 'EVIDENCE'}
+                    {readableSource || ev.source || 'EVIDENCE'}
                   </span>
-                  <span className="font-mono text-muted-foreground text-[11px]">
-                    Doc ID: {String(ev.document_id).slice(0, 8)}...
-                  </span>
+                  {!readableSource && (
+                    <span className="font-mono text-muted-foreground text-[11px]">
+                      Doc ID: {String(ev.document_id).slice(0, 8)}...
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">

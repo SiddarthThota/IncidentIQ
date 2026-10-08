@@ -175,6 +175,7 @@ export function InvestigationDetail() {
       <section aria-label="Key Findings">
         <FindingsList
           findings={state.conclusion?.findings || []}
+          sourceReferences={state.conclusion?.source_references || []}
           onSelectDocument={handleOpenDocument}
         />
       </section>
@@ -233,6 +234,7 @@ export function InvestigationDetail() {
       <section aria-label="Retrieved Evidence">
         <EvidenceExplorer
           evidence={state.retrieved_evidence || []}
+          sourceReferences={state.conclusion?.source_references || []}
           onSelectDocument={handleOpenDocument}
         />
       </section>
