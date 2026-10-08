@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.logger import logger, log_safe
 from app.services.supabase_client import get_supabase_client
-from app.api.endpoints import documents, search
+from app.api.endpoints import documents, search, investigations
 
 app = FastAPI(title="IncidentIQ API")
 
@@ -19,6 +19,7 @@ app.add_middleware(
 
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
+app.include_router(investigations.router, prefix="/api/investigations", tags=["investigations"])
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
