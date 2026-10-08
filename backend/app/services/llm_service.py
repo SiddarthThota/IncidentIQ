@@ -13,11 +13,11 @@ T = TypeVar('T', bound=BaseModel)
 class LLMService:
     def __init__(self):
         # We rely on GEMINI_API_KEY env var
-        api_key = settings.GEMINI_API_KEY
+        api_key = settings.gemini_api_key
         if not api_key:
             logger.warning("GEMINI_API_KEY is not set.")
         self.client = genai.Client(api_key=api_key)
-        self.model = "gemini-2.5-flash"
+        self.model = "gemini-3.8-flash"
         
     def generate_structured(self, prompt: str, schema: Type[T]) -> T:
         try:

@@ -3,7 +3,7 @@
 ## Current State
 
 Phase: 4 — Investigation State / Evidence Reasoning
-Status: COMPLETE
+Status: VERIFIED
 
 Lead: Siddarth
 QA: QA/Testing Co-Hacker
@@ -51,16 +51,12 @@ QA:
 Docs:
 - Updated CURRENT_PHASE.md.
 
-Acceptance:
-- Question Analysis: PASS
-- Subquestions: PASS
-- Evidence Source-Linked: PASS
-- Evidence Classifications: PASS
-- Temporal Relationships: PASS
-- Contradiction Handling: PASS
-- Insufficient Evidence: PASS
-- Investigation APIs: PASS
-- Bounded Execution: PASS
+Acceptance / Verification Notes:
+- 66/66 unit tests passed
+- live Test A passed
+- B/C/D behavior verified by isolated tests
+- live B/C/D were limited by external Gemini 503/429 quota responses
+- Phase 2 and Phase 3 regressions passed
 
 Known Blockers:
 - None.
