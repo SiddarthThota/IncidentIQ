@@ -3,7 +3,7 @@ import json
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
-from typing import TypeVar, Type
+from typing import TypeVar, Type, Optional
 
 from app.core.config import settings
 from app.core.logger import logger
@@ -11,13 +11,13 @@ from app.core.logger import logger
 T = TypeVar('T', bound=BaseModel)
 
 class LLMService:
-    def __init__(self):
+    def __init__(self, model: Optional[str] = None):
         # We rely on GEMINI_API_KEY env var
         api_key = settings.gemini_api_key
         if not api_key:
             logger.warning("GEMINI_API_KEY is not set.")
         self.client = genai.Client(api_key=api_key)
-        self.model = "gemini-3.8-flash"
+        self.model = model or settings.llm_model or "gemini-3.5-flash"
         
     def generate_structured(self, prompt: str, schema: Type[T]) -> T:
         try:

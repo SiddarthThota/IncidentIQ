@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     supabase_secret_key: str
     openai_api_key: Optional[str] = None
     gemini_api_key: Optional[str] = None
-    llm_model: Optional[str] = None
+    llm_model: str = "gemini-3.5-flash"
     embedding_model: str = "gemini-embedding-2"
     embedding_dimension: int = 1536
     frontend_url: str = "http://localhost:5173"
