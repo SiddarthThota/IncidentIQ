@@ -34,7 +34,8 @@ class InvestigationRepository:
         
         # 1. Update investigation row
         inv_data = {
-            "status": state.status
+            "status": state.status,
+            "iteration_count": state.iteration_count
         }
         if state.analysis:
             inv_data["normalized_question"] = state.analysis.normalized_question
@@ -108,6 +109,44 @@ class InvestigationRepository:
                 }).execute()
                 contra.id = UUID(res.data[0]["id"])
                 
+        # 5a. Open Questions
+        for oq in state.open_questions:
+            data = {
+                "investigation_id": inv_id,
+                "question": oq.question,
+                "reason": oq.reason,
+                "related_evidence_id": str(oq.related_evidence_id) if oq.related_evidence_id else None,
+                "why_it_matters": oq.why_it_matters,
+                "supporting_evidence_ids": [str(x) for x in oq.supporting_evidence_ids],
+                "status": oq.status,
+                "resolved_by_evidence_ids": [str(x) for x in oq.resolved_by_evidence_ids],
+                "resolution_reason": oq.resolution_reason
+            }
+            if not oq.id:
+                res = self.client.table("investigation_open_questions").insert(data).execute()
+                oq.id = UUID(res.data[0]["id"])
+            else:
+                self.client.table("investigation_open_questions").update(data).eq("id", str(oq.id)).execute()
+                
+        # 5b. Follow-up queries
+        for fq in state.follow_up_queries:
+            data = {
+                "investigation_id": inv_id,
+                "question_id": str(fq.question_id) if fq.question_id else None,
+                "query_text": fq.query_text,
+                "reason": fq.reason,
+                "supporting_evidence_ids": [str(x) for x in fq.supporting_evidence_ids],
+                "priority": fq.priority,
+                "status": fq.status,
+                "iteration": fq.iteration,
+                "retrieved_result_ids": [str(x) for x in fq.retrieved_result_ids]
+            }
+            if not fq.id:
+                res = self.client.table("investigation_followup_queries").insert(data).execute()
+                fq.id = UUID(res.data[0]["id"])
+            else:
+                self.client.table("investigation_followup_queries").update(data).eq("id", str(fq.id)).execute()
+                
         # 6. Events
         for event in state.events:
             if not event.id:
@@ -131,6 +170,7 @@ class InvestigationRepository:
         state = InvestigationState(
             investigation_id=UUID(inv_data["id"]),
             original_question=inv_data["original_question"],
+            iteration_count=inv_data.get("iteration_count", 1),
             status=inv_data["status"],
             created_at=inv_data["created_at"],
             updated_at=inv_data["updated_at"]
@@ -192,6 +232,38 @@ class InvestigationRepository:
                 conflicting_claims=c["conflicting_claims"],
                 context_info=c["context_info"],
                 status=c["status"]
+            ))
+            
+        # Open Questions
+        oq_res = self.client.table("investigation_open_questions").select("*").eq("investigation_id", str(investigation_id)).execute()
+        for o in oq_res.data:
+            state.open_questions.append(InvestigationOpenQuestion(
+                id=UUID(o["id"]),
+                question=o["question"],
+                reason=o.get("reason"),
+                related_evidence_id=UUID(o["related_evidence_id"]) if o.get("related_evidence_id") else None,
+                why_it_matters=o.get("why_it_matters"),
+                supporting_evidence_ids=[UUID(x) for x in (o.get("supporting_evidence_ids") or [])],
+                status=o.get("status", "OPEN"),
+                generated_at=o.get("generated_at"),
+                resolved_by_evidence_ids=[UUID(x) for x in (o.get("resolved_by_evidence_ids") or [])],
+                resolution_reason=o.get("resolution_reason")
+            ))
+
+        # Follow-up queries
+        fq_res = self.client.table("investigation_followup_queries").select("*").eq("investigation_id", str(investigation_id)).execute()
+        from app.schemas.investigation import InvestigationFollowUpQuery
+        for f in fq_res.data:
+            state.follow_up_queries.append(InvestigationFollowUpQuery(
+                id=UUID(f["id"]),
+                question_id=UUID(f["question_id"]) if f.get("question_id") else None,
+                query_text=f["query_text"],
+                reason=f.get("reason"),
+                supporting_evidence_ids=[UUID(x) for x in (f.get("supporting_evidence_ids") or [])],
+                priority=f.get("priority"),
+                status=f["status"],
+                iteration=f["iteration"],
+                retrieved_result_ids=[UUID(x) for x in (f.get("retrieved_result_ids") or [])]
             ))
             
         # Events

@@ -39,6 +39,7 @@ class InvestigationQuestionAnalysis(BaseModel):
 
 class InvestigationEvidenceClaim(BaseModel):
     id: Optional[UUID] = None
+    evidence_id: Optional[UUID] = None
     claim_text: str
     classification: EvidenceClassification
     confidence: Optional[float] = None
@@ -71,7 +72,24 @@ class InvestigationOpenQuestion(BaseModel):
     id: Optional[UUID] = None
     question: str
     reason: Optional[str] = None
-    related_evidence_id: Optional[UUID] = None
+    related_evidence_id: Optional[UUID] = None # legacy reference
+    why_it_matters: Optional[str] = None
+    supporting_evidence_ids: List[UUID] = []
+    status: str = "OPEN" # OPEN, RESOLVED, UNRESOLVED, SKIPPED, BLOCKED
+    generated_at: Optional[datetime] = None
+    resolved_by_evidence_ids: List[UUID] = []
+    resolution_reason: Optional[str] = None
+
+class InvestigationFollowUpQuery(BaseModel):
+    id: Optional[UUID] = None
+    question_id: Optional[UUID] = None
+    query_text: str
+    reason: Optional[str] = None
+    supporting_evidence_ids: List[UUID] = []
+    priority: Optional[str] = None
+    status: str = "PENDING" # PENDING, EXECUTED, SKIPPED, FAILED, NO_RESULTS
+    iteration: int = 1
+    retrieved_result_ids: List[UUID] = []
 
 class InvestigationEvent(BaseModel):
     id: Optional[UUID] = None
@@ -87,7 +105,9 @@ class InvestigationState(BaseModel):
     relationships: List[InvestigationRelationship] = []
     contradictions: List[InvestigationContradiction] = []
     open_questions: List[InvestigationOpenQuestion] = []
+    follow_up_queries: List[InvestigationFollowUpQuery] = []
     events: List[InvestigationEvent] = []
+    iteration_count: int = 1
     status: str = "IN_PROGRESS"
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
