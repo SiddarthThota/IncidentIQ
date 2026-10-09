@@ -1,4 +1,4 @@
-import { History, GitCompare, FileText, ShieldCheck } from 'lucide-react'
+import { GitCompare, History, Database, AlertTriangle, FileText } from 'lucide-react'
 import type { InvestigationRelationship, InvestigationEvidence } from '../../types/investigation'
 
 interface HistoricalComparisonProps {
@@ -12,140 +12,113 @@ export function HistoricalComparison({
   evidence,
   onSelectDocument,
 }: HistoricalComparisonProps) {
-  // Find relationships that refer to similar incidents or historical relations
-  const historicalRels = relationships.filter(
-    r =>
-      r.relationship_type === 'SIMILAR_INCIDENT' ||
-      r.relationship_type === 'SAME_FAILURE_TYPE' ||
-      (r.explanation && r.explanation.toLowerCase().includes('historical'))
-  )
-
-  if (historicalRels.length === 0) {
+  if (!relationships || relationships.length === 0) {
     return null
   }
 
-  const findEv = (id: string) => evidence.find(e => String(e.id) === String(id))
+  const findEvidence = (evId: string) => {
+    return evidence.find(e => String(e.id) === String(evId))
+  }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-blue-500/10 text-blue-400 rounded-lg">
-            <History className="w-4 h-4" />
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-accent/10 text-accent rounded-xl border border-accent/20 shadow-inner">
+            <GitCompare className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground tracking-tight">
-              Historical Incident Correlation & Comparison
+            <h2 className="text-sm font-bold text-foreground uppercase tracking-widest">
+              Historical Correlation
             </h2>
-            <p className="text-xs text-muted-foreground">
-              Cross-incident pattern matching with strict boundary distinction between Similar Incidents and Exact Matches
+            <p className="text-[11px] font-mono text-muted-foreground mt-0.5 opacity-80">
+              Pattern matching against prior resolved incidents
             </p>
           </div>
         </div>
-        <span className="text-xs font-mono text-blue-400 font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">
-          {historicalRels.length} Historical Correlation{historicalRels.length > 1 ? 's' : ''}
-        </span>
       </div>
 
-      <div className="grid gap-4">
-        {historicalRels.map((rel, idx) => {
-          const srcEv = findEv(rel.source_evidence_id)
-          const targetEv = findEv(rel.target_evidence_id)
+      <div className="grid gap-6">
+        {relationships.map((rel, idx) => {
+          const ev1 = findEvidence(rel.source_evidence_id)
+          const ev2 = findEvidence(rel.target_evidence_id)
+          const isSimilar = rel.relationship_type.includes('SIMILAR')
 
           return (
             <div
-              key={rel.id || idx}
-              className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-5 shadow-xs space-y-4"
+              key={idx}
+              className="rounded-2xl border border-accent/30 bg-card/40 backdrop-blur-md p-6 shadow-[0_8px_30px_rgba(0,0,0,0.12)] space-y-6 relative overflow-hidden group hover:border-accent/50 transition-colors"
             >
-              {/* Header Badge */}
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs uppercase tracking-wider font-bold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center gap-1.5">
-                    <GitCompare className="w-3.5 h-3.5" />
-                    SIMILAR INCIDENT (ANALOGOUS PATTERN)
-                  </span>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl pointer-events-none -mr-10 -mt-10 group-hover:bg-accent/20 transition-colors" />
 
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border">
-                    NOT AN EXACT MATCH
-                  </span>
-                </div>
-
-                {rel.confidence !== null && rel.confidence !== undefined && (
-                  <span className="font-mono text-xs text-muted-foreground">
-                    Similarity Match: {(rel.confidence * 100).toFixed(0)}%
-                  </span>
-                )}
-              </div>
-
-              {/* Correlation Explanation */}
-              <div className="p-3.5 rounded-lg bg-card/80 border border-border/80 text-xs text-foreground font-medium leading-relaxed">
-                <span className="text-blue-400 font-semibold">Incident Comparison: </span>
-                {rel.explanation ||
-                  'Historical incident exhibits comparable failure symptoms under similar operational conditions.'}
-              </div>
-
-              {/* Side by side comparison cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                {/* Active Incident Evidence */}
-                <div className="rounded-lg border border-border bg-card p-3.5 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-foreground flex items-center gap-1">
-                      <FileText className="w-3.5 h-3.5 text-primary" />
-                      Current Incident Context
-                    </span>
-                    {srcEv && (
-                      <button
-                        onClick={() =>
-                          onSelectDocument &&
-                          onSelectDocument(String(srcEv.document_id), srcEv.source ?? undefined)
-                        }
-                        className="font-mono text-xs text-primary hover:underline font-semibold"
-                      >
-                        {srcEv.source || 'Active Source'}
-                      </button>
-                    )}
-                  </div>
-                  {srcEv?.source_text && (
-                    <p className="text-xs text-muted-foreground font-mono bg-muted/40 p-2.5 rounded border border-border/50 line-clamp-3">
-                      "{srcEv.source_text}"
-                    </p>
-                  )}
-                </div>
-
-                {/* Historical Incident Evidence */}
-                <div className="rounded-lg border border-border bg-card p-3.5 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-foreground flex items-center gap-1">
-                      <History className="w-3.5 h-3.5 text-blue-400" />
-                      Historical Postmortem / Reference
-                    </span>
-                    {targetEv && (
-                      <button
-                        onClick={() =>
-                          onSelectDocument &&
-                          onSelectDocument(String(targetEv.document_id), targetEv.source ?? undefined)
-                        }
-                        className="font-mono text-xs text-blue-400 hover:underline font-semibold"
-                      >
-                        {targetEv.source || 'Historical Source'}
-                      </button>
-                    )}
-                  </div>
-                  {targetEv?.source_text && (
-                    <p className="text-xs text-muted-foreground font-mono bg-muted/40 p-2.5 rounded border border-border/50 line-clamp-3">
-                      "{targetEv.source_text}"
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Guardrail Callout */}
-              <div className="rounded bg-muted/30 p-2.5 text-[11px] text-muted-foreground border border-border/50 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>
-                  InvestigationIQ distinguishes analogous patterns from exact identity. Historical remediation steps provide context but must be verified against current service architecture and version.
+              <div className="flex flex-wrap items-center justify-between gap-4 relative z-10 border-b border-border/50 pb-4">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-bold flex items-center gap-2">
+                  <Database className="w-4 h-4 text-accent" />
+                  Historical Record Analysis
                 </span>
+                <div className="flex gap-2">
+                   <span className="text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-accent/10 text-accent border border-accent/30 flex items-center gap-1.5">
+                    <History className="w-3 h-3" />
+                    {rel.relationship_type.replace(/_/g, ' ')}
+                  </span>
+                  {isSimilar && (
+                    <span className="text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-warning/10 text-warning border border-warning/30 flex items-center gap-1.5">
+                      <AlertTriangle className="w-3 h-3" />
+                      NOT AN EXACT MATCH
+                    </span>
+                  )}
+                </div>
               </div>
+
+              {/* Explanation Summary */}
+              <div className="rounded-xl bg-background/50 border border-border/60 text-sm text-foreground font-medium leading-relaxed p-4 relative z-10 shadow-sm border-l-4 border-l-accent">
+                <span className="text-accent font-bold uppercase tracking-wider text-[10px] block mb-2 opacity-80">Correlation Rationale</span>
+                {rel.explanation}
+              </div>
+
+              {/* Confidence Meter */}
+              {rel.confidence && (
+                <div className="flex items-center gap-3 relative z-10">
+                  <span className="text-[10px] font-mono text-muted-foreground uppercase font-bold tracking-widest w-24">SIMILARITY</span>
+                  <div className="h-1.5 bg-background border border-border/60 rounded-full flex-1 overflow-hidden">
+                    <div
+                      className="h-full bg-accent rounded-full transition-all duration-1000"
+                      style={{ width: `${Math.round(rel.confidence * 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] font-mono text-accent font-bold w-12 text-right">
+                    {Math.round(rel.confidence * 100)}%
+                  </span>
+                </div>
+              )}
+
+              {/* Document References */}
+              <div className="flex flex-col gap-2 pt-4 border-t border-border/50 relative z-10">
+                 <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">
+                   Linked Source Documents
+                 </span>
+                 <div className="flex flex-wrap gap-3">
+                  {ev1 && (
+                     <button
+                       onClick={() => onSelectDocument && onSelectDocument(String(ev1.document_id), ev1.source ?? undefined)}
+                       className="font-mono text-xs flex items-center gap-2 bg-background hover:bg-background/80 border border-border/60 px-3 py-1.5 rounded-lg text-foreground transition-colors shadow-sm"
+                     >
+                       <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+                       {ev1.source || String(ev1.document_id).slice(0, 8)}
+                     </button>
+                  )}
+                  {ev2 && (
+                     <button
+                       onClick={() => onSelectDocument && onSelectDocument(String(ev2.document_id), ev2.source ?? undefined)}
+                       className="font-mono text-xs flex items-center gap-2 bg-background hover:bg-background/80 border border-border/60 px-3 py-1.5 rounded-lg text-foreground transition-colors shadow-sm"
+                     >
+                       <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+                       {ev2.source || String(ev2.document_id).slice(0, 8)}
+                     </button>
+                  )}
+                 </div>
+              </div>
+
             </div>
           )
         })}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, ExternalLink, Layers } from 'lucide-react'
+import { ChevronDown, ChevronUp, ExternalLink, Layers, FileText } from 'lucide-react'
 import type { InvestigationEvidence, SourceReference } from '../../types/investigation'
 
 interface EvidenceExplorerProps {
@@ -12,11 +12,7 @@ export function EvidenceExplorer({ evidence, sourceReferences = [], onSelectDocu
   const [expandedChunks, setExpandedChunks] = useState<Record<string, boolean>>({})
 
   if (!evidence || evidence.length === 0) {
-    return (
-      <div className="rounded-xl border border-border bg-card p-6 text-center text-muted-foreground text-sm">
-        No evidence chunks retrieved for this investigation.
-      </div>
-    )
+    return null
   }
 
   const toggleExpand = (id: string) => {
@@ -32,7 +28,7 @@ export function EvidenceExplorer({ evidence, sourceReferences = [], onSelectDocu
       case 'TEMPORAL':
         return 'text-amber-400 bg-amber-500/10 border-amber-500/20'
       case 'INFERRED':
-        return 'text-blue-400 bg-blue-500/10 border-blue-500/20'
+        return 'text-primary bg-primary/10 border-primary/20'
       case 'CONTRADICTED':
         return 'text-destructive bg-destructive/10 border-destructive/20'
       default:
@@ -47,22 +43,19 @@ export function EvidenceExplorer({ evidence, sourceReferences = [], onSelectDocu
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md py-2 z-10">
         <div>
-          <h2 className="text-base font-semibold text-foreground tracking-tight flex items-center gap-2">
+          <h2 className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
             <Layers className="w-4 h-4 text-primary" />
-            Retrieved Evidence Explorer
+            Retrieved Evidence
           </h2>
-          <p className="text-xs text-muted-foreground mt-1">
-            Verifiable document chunks and claim extractions retrieved by semantic & metadata search
-          </p>
         </div>
-        <span className="text-xs font-mono text-muted-foreground px-2 py-0.5 rounded bg-muted border border-border">
-          {evidence.length} Chunks
+        <span className="text-[10px] font-mono text-muted-foreground px-2 py-0.5 rounded-full bg-background border border-border font-bold">
+          {evidence.length} CHUNKS
         </span>
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid gap-4">
         {evidence.map((ev, idx) => {
           const chunkKey = String(ev.chunk_id || ev.id || idx)
           const isExpanded = !!expandedChunks[chunkKey]
@@ -71,18 +64,19 @@ export function EvidenceExplorer({ evidence, sourceReferences = [], onSelectDocu
           return (
             <div
               key={chunkKey}
-              className="rounded-lg border border-border bg-card p-4 transition-all hover:border-border/80 shadow-xs space-y-3"
+              className="rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-md shadow-sm space-y-3 relative overflow-hidden group"
             >
               {/* Evidence Top Header */}
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs relative z-10">
                 <div className="flex items-center gap-2">
                   {/* Source Label or Document ID */}
-                  <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-primary/15 text-primary border border-primary/20">
+                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-primary-light text-primary border border-primary/20 uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                    <FileText className="w-3 h-3" />
                     {readableSource || ev.source || 'EVIDENCE'}
                   </span>
                   {!readableSource && (
-                    <span className="font-mono text-muted-foreground text-[11px]">
-                      Doc ID: {String(ev.document_id).slice(0, 8)}...
+                    <span className="font-mono text-muted-foreground text-[10px]">
+                      ID: {String(ev.document_id).slice(0, 8)}...
                     </span>
                   )}
                 </div>
@@ -91,9 +85,9 @@ export function EvidenceExplorer({ evidence, sourceReferences = [], onSelectDocu
                   {onSelectDocument && (
                     <button
                       onClick={() => onSelectDocument(String(ev.document_id), ev.source ?? undefined)}
-                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
+                      className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest text-muted-foreground hover:text-primary transition-colors"
                     >
-                      <ExternalLink className="w-3.5 h-3.5" /> View Full Source
+                      <ExternalLink className="w-3 h-3" /> View
                     </button>
                   )}
                 </div>
@@ -101,63 +95,59 @@ export function EvidenceExplorer({ evidence, sourceReferences = [], onSelectDocu
 
               {/* Source Text Excerpt */}
               {ev.source_text && (
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                    <span className="font-mono uppercase">Excerpt</span>
-                    <button
-                      onClick={() => toggleExpand(chunkKey)}
-                      className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground text-[11px] transition-colors"
-                    >
-                      {isExpanded ? (
-                        <>
-                          <ChevronUp className="w-3 h-3" /> Show Less
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDown className="w-3 h-3" /> Show More
-                        </>
-                      )}
-                    </button>
-                  </div>
+                <div className="space-y-1 relative z-10">
                   <div
-                    className={`rounded bg-muted/40 border border-border/60 p-3 text-xs font-mono text-foreground leading-relaxed transition-all ${
-                      isExpanded ? 'whitespace-pre-wrap' : 'line-clamp-3'
+                    className={`rounded bg-card-subtle border border-border p-3 text-xs font-mono text-secondary-foreground leading-relaxed transition-all ${
+                      isExpanded ? 'whitespace-pre-wrap' : 'line-clamp-4'
                     }`}
                   >
                     {ev.source_text}
+                  </div>
+                  <div className="flex justify-end pt-1">
+                    <button
+                      onClick={() => toggleExpand(chunkKey)}
+                      className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary text-[10px] font-bold uppercase tracking-wider transition-colors"
+                    >
+                      {isExpanded ? (
+                        <>
+                          <ChevronUp className="w-3 h-3" /> Less
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-3 h-3" /> More
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               )}
 
               {/* Extracted Claims */}
               {ev.claims && ev.claims.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-border/50">
-                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                    Extracted Claims ({ev.claims.length})
-                  </span>
+                <div className="space-y-2 pt-3 border-t border-border/40 relative z-10">
                   <div className="grid gap-2">
                     {ev.claims.map((claim, cIdx) => (
                       <div
                         key={claim.id || cIdx}
-                        className="rounded bg-muted/20 border border-border/40 p-2.5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                        className="rounded border border-border/30 p-2 text-xs flex flex-col gap-1.5 hover:bg-background/40 transition-colors"
                       >
-                        <p className="text-foreground leading-snug font-medium">
-                          {claim.claim_text}
-                        </p>
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-2">
                           <span
-                            className={`font-mono text-[10px] font-semibold px-2 py-0.5 rounded border uppercase ${getClassificationBadge(
+                            className={`font-mono text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-widest ${getClassificationBadge(
                               claim.classification
                             )}`}
                           >
                             {claim.classification}
                           </span>
                           {claim.confidence !== null && claim.confidence !== undefined && (
-                            <span className="font-mono text-[10px] text-muted-foreground">
+                            <span className="font-mono text-[9px] text-muted-foreground ml-auto border border-border px-1 rounded bg-background">
                               {(claim.confidence * 100).toFixed(0)}%
                             </span>
                           )}
                         </div>
+                        <p className="text-foreground leading-snug">
+                          {claim.claim_text}
+                        </p>
                       </div>
                     ))}
                   </div>

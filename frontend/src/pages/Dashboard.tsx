@@ -62,7 +62,7 @@ export function Dashboard() {
 
       {/* Investigation Pipeline Workflow Highlights */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-border bg-card p-5 space-y-2 shadow-xs">
+        <div className="rounded-xl border border-border bg-card p-5 space-y-2 shadow-sm transition-shadow hover:shadow-md">
           <div className="p-2.5 w-fit rounded-lg bg-primary/10 text-primary">
             <Search className="w-5 h-5" />
           </div>
@@ -72,8 +72,8 @@ export function Dashboard() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-5 space-y-2 shadow-xs">
-          <div className="p-2.5 w-fit rounded-lg bg-teal-500/10 text-teal-400">
+        <div className="rounded-xl border border-border bg-card p-5 space-y-2 shadow-sm transition-shadow hover:shadow-md">
+          <div className="p-2.5 w-fit rounded-lg bg-indigo-100 text-indigo-700">
             <Layers className="w-5 h-5" />
           </div>
           <h3 className="text-sm font-semibold text-foreground">Autonomous Follow-Up Loop</h3>
@@ -82,8 +82,8 @@ export function Dashboard() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-5 space-y-2 shadow-xs">
-          <div className="p-2.5 w-fit rounded-lg bg-emerald-500/10 text-emerald-400">
+        <div className="rounded-xl border border-border bg-card p-5 space-y-2 shadow-sm transition-shadow hover:shadow-md">
+          <div className="p-2.5 w-fit rounded-lg bg-emerald-100 text-emerald-700">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <h3 className="text-sm font-semibold text-foreground">Traceable Conclusions</h3>

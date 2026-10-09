@@ -15,19 +15,10 @@ class RetrievalService:
 
     def search(self, request: SearchRequest) -> SearchResponse:
         logger.info(f"Retrieval Request: query='{request.query}', top_k={request.top_k}, filters={request.filters}")
-        
+
         # 1. Embed query
         embeddings = self.embedding_service.generate_embeddings([request.query])
-        if not embeddings or not embeddings[0]:
-            logger.warning("Failed to generate query embedding.")
-            return SearchResponse(
-                query=request.query,
-                results=[],
-                applied_filters=request.filters,
-                insufficient_evidence=True
-            )
-        query_embedding = embeddings[0]
-            
+
         # 2. Extract filters
         kwargs = {}
         if request.filters:
@@ -37,30 +28,39 @@ class RetrievalService:
             if request.filters.date_to: kwargs["filter_date_to"] = request.filters.date_to
             if request.filters.software_version: kwargs["filter_software_version"] = request.filters.software_version
             if request.filters.document_id: kwargs["filter_document_id"] = request.filters.document_id
-            
+
         # 3. Retrieve candidates (fetch slightly more to allow dedup)
         fetch_count = max(request.top_k * 3, 20)
-        
-        raw_results = self.repo.search_chunks(
-            query_embedding=query_embedding,
-            match_count=fetch_count,
-            **kwargs
-        )
-        
+
+        if not embeddings or not embeddings[0]:
+            logger.warning("Failed to generate query embedding. Using fallback text search.")
+            raw_results = self.repo.fallback_search_chunks(
+                query_text=request.query,
+                match_count=fetch_count,
+                **kwargs
+            )
+        else:
+            query_embedding = embeddings[0]
+            raw_results = self.repo.search_chunks(
+                query_embedding=query_embedding,
+                match_count=fetch_count,
+                **kwargs
+            )
+
         # 4. Deduplicate and rank
         # Strategy: allow at most N chunks from the same document to prevent flooding
         # Keep them sorted by similarity (the RPC already sorted them descending by similarity, meaning highest similarity first)
         MAX_CHUNKS_PER_DOC = 2
         doc_counts = {}
         final_results = []
-        
+
         for r in raw_results:
             doc_id = r["document_id"]
             sim = r["similarity"]
-            
+
             if sim < self.similarity_threshold:
                 continue
-                
+
             doc_counts[doc_id] = doc_counts.get(doc_id, 0) + 1
             if doc_counts[doc_id] <= MAX_CHUNKS_PER_DOC:
                 final_results.append(
@@ -78,14 +78,14 @@ class RetrievalService:
                         source=r["source"]
                     )
                 )
-                
+
             if len(final_results) >= request.top_k:
                 break
-                
+
         insufficient = len(final_results) == 0
-        
+
         logger.info(f"Retrieval complete. Found {len(final_results)} results. Insufficient? {insufficient}")
-        
+
         return SearchResponse(
             query=request.query,
             results=final_results,

@@ -124,7 +124,9 @@ def test_malformed_question_fails_gracefully(investigation_service, mock_llm_ser
     mock_llm_service.generate_structured.side_effect = Exception("LLM Error")
     state = investigation_service.run_initial_investigation("Crash the LLM")
     
-    assert state.status == "INVESTIGATION_PROVIDER_FAILURE"
-    error_event = next((e for e in state.events if e.event_type == "INVESTIGATION_PROVIDER_FAILURE"), None)
+    # Should fallback and continue
+    error_event = next((e for e in state.events if e.event_type == "QUESTION_ANALYSIS_PROVIDER_FALLBACK"), None)
     assert error_event is not None
     assert "LLM Error" in error_event.details
+    assert state.analysis.investigation_intent == "TROUBLESHOOTING"
+    assert state.analysis.subquestions == ["Crash the LLM"]

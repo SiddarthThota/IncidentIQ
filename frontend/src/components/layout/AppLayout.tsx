@@ -33,100 +33,121 @@ export function AppLayout() {
   ]
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
-      {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground md:hidden"
-              aria-label="Toggle navigation menu"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-primary text-primary-foreground">
+    <div className="min-h-screen bg-background text-foreground flex font-sans selection:bg-primary/30">
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 border-b border-border bg-card z-40 flex items-center justify-between px-4">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
+            <Shield className="w-5 h-5" />
+          </div>
+          <span className="font-bold tracking-tight text-foreground">IncidentIQ</span>
+        </Link>
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Mobile Drawer Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-50 animate-in fade-in"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar (Desktop fixed, Mobile drawer) */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex-1 flex flex-col">
+          {/* Sidebar Header */}
+          <div className="h-16 flex items-center justify-between px-5 border-b border-border">
+            <Link to="/" className="flex items-center gap-3 group" onClick={() => setMobileMenuOpen(false)}>
+              <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 transition-all">
                 <Shield className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
-                <span className="text-base font-bold tracking-tight text-foreground leading-none">
+                <span className="text-sm font-bold tracking-tight text-foreground leading-none">
                   IncidentIQ
                 </span>
-                <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mt-0.5">
+                <span className="text-[10px] font-mono text-muted-foreground mt-1">
                   Evidence Intelligence
                 </span>
               </div>
             </Link>
-          </div>
-
-          <div className="flex items-center gap-3 sm:gap-4">
-            {user?.email && (
-              <span className="text-xs font-mono text-muted-foreground hidden sm:inline-block px-2.5 py-1 rounded bg-muted/60 border border-border">
-                {user.email}
-              </span>
-            )}
             <button
-              onClick={signOut}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors border border-transparent hover:border-border"
-              title="Sign Out"
-              aria-label="Sign Out"
+              onClick={() => setMobileMenuOpen(false)}
+              className="md:hidden p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
             >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign Out</span>
+              <X className="w-5 h-5" />
             </button>
           </div>
-        </div>
 
-        {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-card px-4 py-3 space-y-1 animate-in slide-in-from-top-2">
-            {navItems.map(item => (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  item.isActive
-                    ? 'bg-primary/10 text-primary font-semibold'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <item.icon className="w-4 h-4" />
-                {item.name}
-              </Link>
-            ))}
-          </div>
-        )}
-      </header>
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-1">
+            {navItems.map(item => {
+              const isActive = item.isActive
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`relative flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors overflow-hidden ${
+                    isActive
+                      ? 'text-primary bg-primary-light font-semibold'
+                      : 'text-secondary-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  {/* Active Accent Line */}
+                  {isActive && (
+                    <div className="absolute left-0 top-1 bottom-1 w-1 bg-primary rounded-r-full" />
+                  )}
 
-      {/* Main Body Layout */}
-      <div className="flex-1 container mx-auto px-4 py-6 sm:py-8 flex flex-col md:flex-row gap-6 lg:gap-8">
-        {/* Desktop Sidebar Navigation */}
-        <aside className="hidden md:block w-56 shrink-0">
-          <nav className="flex flex-col gap-1.5 sticky top-24">
-            {navItems.map(item => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm transition-all ${
-                  item.isActive
-                    ? 'bg-primary/10 text-primary font-semibold shadow-xs'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground font-medium'
-                }`}
-              >
-                <item.icon className="w-4 h-4" />
-                {item.name}
-              </Link>
-            ))}
+                  <item.icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <span>{item.name}</span>
+                </Link>
+              )
+            })}
           </nav>
-        </aside>
 
-        {/* Page Main Content Area */}
-        <main className="flex-1 min-w-0">
+          {/* User Profile Area */}
+          <div className="p-4 border-t border-border">
+            <div className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="w-8 h-8 rounded-full bg-primary-light border border-primary/20 flex items-center justify-center shrink-0">
+                  <span className="text-xs font-bold text-primary">
+                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {user?.email || 'Investigator'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={signOut}
+                className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive-background transition-colors shrink-0"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col min-w-0 md:pl-64 pt-16 md:pt-0 min-h-screen bg-card-subtle">
+        <div className="flex-1 w-full max-w-6xl mx-auto p-4 md:p-8">
           <Outlet />
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }

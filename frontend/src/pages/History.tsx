@@ -50,31 +50,31 @@ export function History() {
     switch (status) {
       case 'SUPPORTED':
         return (
-          <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+          <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-success-background text-success border border-success/20">
             SUPPORTED
           </span>
         )
       case 'PARTIALLY_SUPPORTED':
         return (
-          <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
+          <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-warning-background text-warning border border-warning/20">
             PARTIALLY SUPPORTED
           </span>
         )
       case 'INSUFFICIENT':
         return (
-          <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
+          <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-warning-background text-warning border border-warning/20">
             INSUFFICIENT
           </span>
         )
       case 'CONTRADICTED':
         return (
-          <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/20">
+          <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-destructive-background text-destructive border border-destructive/20">
             CONTRADICTED
           </span>
         )
       case 'PROVIDER_LIMITED':
         return (
-          <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/20">
+          <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-light text-primary border border-primary/20">
             PROVIDER LIMITED
           </span>
         )

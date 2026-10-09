@@ -92,9 +92,17 @@ Be concise. Do not invent facts or UUIDs. Only use IDs from the provided evidenc
             state.analysis = analysis
             state.events.append(InvestigationEvent(event_type="INITIAL_ANALYSIS_COMPLETED", details=f"Intent: {analysis.investigation_intent}"))
         except Exception as e:
-            state.status = "INVESTIGATION_PROVIDER_FAILURE"
-            state.events.append(InvestigationEvent(event_type="INVESTIGATION_PROVIDER_FAILURE", details=f"Question analysis failed: {str(e)}"))
-            return self.repo.persist_state(state)
+            # Fallback analysis
+            analysis = InvestigationQuestionAnalysis(
+                normalized_question=question,
+                investigation_intent="TROUBLESHOOTING",
+                services=[],
+                primary_entities=[],
+                timeframe_of_interest="recent",
+                subquestions=[question]
+            )
+            state.analysis = analysis
+            state.events.append(InvestigationEvent(event_type="QUESTION_ANALYSIS_PROVIDER_FALLBACK", details=f"Question analysis failed: {str(e)}"))
 
         # Generate Initial Follow-Up Queries based on subquestions or main question
         queries_to_add = []
@@ -116,26 +124,26 @@ Be concise. Do not invent facts or UUIDs. Only use IDs from the provided evidenc
                     status="PENDING",
                     iteration=1
                 ))
-        
+
         state.follow_up_queries.extend(queries_to_add)
 
         # Execute iterative loop
-        while state.iteration_count <= self.max_iterations and state.status not in ["COMPLETED", "INSUFFICIENT", "INVESTIGATION_PROVIDER_FAILURE"]:
+        while state.iteration_count <= self.max_iterations and state.status not in ["COMPLETED", "INSUFFICIENT", "INVESTIGATION_PROVIDER_FAILURE", "PROVIDER_LIMITED"]:
             pending_queries = [q for q in state.follow_up_queries if q.status == "PENDING"]
             if not pending_queries:
                 state.events.append(InvestigationEvent(event_type="NO_NEW_EVIDENCE", details="No pending follow-up queries remaining."))
                 state.status = "COMPLETED"
                 break
-                
+
             queries_to_run = pending_queries[:self.max_queries_per_iteration]
             for q in queries_to_run:
                 q.status = "EXECUTED"
-            
+
             query_texts = [q.query_text for q in queries_to_run]
             state.events.append(InvestigationEvent(event_type="FOLLOW_UP_SEARCH_EXECUTED", details=f"Executing {len(query_texts)} queries."))
-            
+
             self._execute_iteration(state, queries_to_run)
-            
+
             if state.status == "IN_PROGRESS":
                 state.iteration_count += 1
 
@@ -147,7 +155,7 @@ Be concise. Do not invent facts or UUIDs. Only use IDs from the provided evidenc
         # Check for insufficient state
         if not state.retrieved_evidence:
             state.status = "INSUFFICIENT"
-            
+
         for oq in state.open_questions:
             if oq.status == "OPEN":
                 oq.status = "UNRESOLVED"
@@ -180,7 +188,7 @@ Be concise. Do not invent facts or UUIDs. Only use IDs from the provided evidenc
 
         try:
             assessment = self.assess_evidence(state, new_evidence)
-            
+
             # Map claims back to evidence based on evidence_id
             for claim in assessment.claims:
                 if claim.classification not in ["DIRECT", "CORROBORATED", "TEMPORAL", "INFERRED", "CONTRADICTED", "INSUFFICIENT"]:
@@ -194,22 +202,22 @@ Be concise. Do not invent facts or UUIDs. Only use IDs from the provided evidenc
             valid_ev_ids = {str(ev.id) for ev in state.retrieved_evidence}
             valid_rels = [r for r in assessment.relationships if str(r.source_evidence_id) in valid_ev_ids and str(r.target_evidence_id) in valid_ev_ids]
             valid_contras = [c for c in assessment.contradictions if str(c.evidence_1_id) in valid_ev_ids and str(c.evidence_2_id) in valid_ev_ids]
-            
+
             state.relationships.extend(valid_rels)
             state.contradictions.extend(valid_contras)
-            
+
             # Resolve questions
             for q_id in assessment.resolved_question_ids:
                 for oq in state.open_questions:
                     if str(oq.id) == str(q_id):
                         oq.status = "RESOLVED"
                         state.events.append(InvestigationEvent(event_type="QUESTION_RESOLVED", details=f"Resolved question {oq.id}"))
-                        
+
             # Add new questions and queries
             if assessment.new_open_questions:
                 state.events.append(InvestigationEvent(event_type="OPEN_QUESTION_CREATED", details=f"Added {len(assessment.new_open_questions)} open questions."))
                 state.open_questions.extend(assessment.new_open_questions)
-                
+
             if assessment.follow_up_queries:
                 # Deduplicate queries by naive text matching
                 existing_texts = {q.query_text.lower().strip() for q in state.follow_up_queries}
@@ -223,13 +231,34 @@ Be concise. Do not invent facts or UUIDs. Only use IDs from the provided evidenc
                         existing_texts.add(t)
                 state.events.append(InvestigationEvent(event_type="FOLLOW_UP_QUERY_GENERATED", details=f"Generated {len(unique_queries)} novel queries."))
                 state.follow_up_queries.extend(unique_queries)
-                
+
             state.events.append(InvestigationEvent(event_type="EVIDENCE_EXTRACTED", details="Extracted claims and relationships."))
-            
+
         except Exception as e:
             logger.error(f"Assessment error: {e}")
             state.events.append(InvestigationEvent(event_type="INVESTIGATION_PROVIDER_FAILURE", details=f"Evidence assessment failed: {str(e)}"))
-            state.status = "INVESTIGATION_PROVIDER_FAILURE"
+            state.status = "PROVIDER_LIMITED"
+
+            # Deterministic fallback: extract first sentence as a raw factual claim
+            for ev in new_evidence:
+                text = (ev.source_text or "").strip()
+                if text:
+                    # Simple sentence extraction without regex
+                    parts = text.split(". ")
+                    claim_text = parts[0][:200] + ("..." if len(parts[0]) > 200 else "")
+                    fallback_claim = InvestigationEvidenceClaim(
+                        claim_text=claim_text,
+                        classification="DIRECT",
+                        confidence=0.5,
+                        evidence_id=ev.id
+                    )
+                    # Update in state.retrieved_evidence
+                    for state_ev in state.retrieved_evidence:
+                        if str(state_ev.id) == str(ev.id):
+                            if state_ev.claims is None:
+                                state_ev.claims = []
+                            state_ev.claims.append(fallback_claim)
+                            break
 
         state.events.append(InvestigationEvent(event_type="ITERATION_COMPLETED", details=f"Completed iteration {state.iteration_count}"))
 

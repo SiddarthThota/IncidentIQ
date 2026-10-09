@@ -132,19 +132,19 @@ export function InvestigationDetail() {
     state.conclusion?.conclusion_status === 'PROVIDER_LIMITED'
 
   return (
-    <div className="space-y-8 animate-in fade-in pb-12">
+    <div className="space-y-8 animate-in fade-in pb-12 max-w-[1600px] mx-auto">
       {/* Top Back Nav & Quick Actions */}
       <div className="flex items-center justify-between">
         <Link
           to="/history"
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to Investigation History
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to Investigation Archive
         </Link>
 
         <Link
           to="/investigations/new"
-          className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium"
+          className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-ai font-bold transition-colors"
         >
           <FileSearch className="w-3.5 h-3.5" /> New Investigation
         </Link>
@@ -157,87 +157,96 @@ export function InvestigationDetail() {
         isConcluding={concludeMutation.isPending}
       />
 
-      {/* Step Flow Pipeline */}
+      {/* Step Flow Pipeline - Investigation Journey */}
       <InvestigationProgress state={state} />
 
-      {/* Prominent Final Conclusion Panel */}
-      {state.conclusion && (
-        <section aria-label="Investigation Conclusion">
-          <ConclusionPanel
-            conclusion={state.conclusion}
-            findings={state.conclusion.findings}
-            onSelectDocument={handleOpenDocument}
-          />
-        </section>
-      )}
+      {/* 2-Column Layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+        {/* Left Column (70%) */}
+        <div className="xl:col-span-8 space-y-8">
+          {/* Prominent Final Conclusion Panel */}
+          {state.conclusion && (
+            <section aria-label="Investigation Conclusion">
+              <ConclusionPanel
+                conclusion={state.conclusion}
+                findings={state.conclusion.findings}
+                onSelectDocument={handleOpenDocument}
+              />
+            </section>
+          )}
 
-      {/* Key Findings List */}
-      <section aria-label="Key Findings">
-        <FindingsList
-          findings={state.conclusion?.findings || []}
-          sourceReferences={state.conclusion?.source_references || []}
-          onSelectDocument={handleOpenDocument}
-        />
-      </section>
+          {/* Chronological Timeline */}
+          <section aria-label="Chronology and Timeline">
+            <TimelineView
+              timeline={state.conclusion?.timeline || []}
+              onSelectDocument={handleOpenDocument}
+            />
+          </section>
 
-      {/* Chronological Timeline */}
-      <section aria-label="Chronology and Timeline">
-        <TimelineView
-          timeline={state.conclusion?.timeline || []}
-          onSelectDocument={handleOpenDocument}
-        />
-      </section>
+          {/* Contradictions Section if detected */}
+          {state.contradictions && state.contradictions.length > 0 && (
+            <section aria-label="Contradictions">
+              <ContradictionsSection
+                contradictions={state.contradictions}
+                evidence={state.retrieved_evidence || []}
+                onSelectDocument={handleOpenDocument}
+              />
+            </section>
+          )}
 
-      {/* Contradictions Section if detected */}
-      {state.contradictions && state.contradictions.length > 0 && (
-        <section aria-label="Contradictions">
-          <ContradictionsSection
-            contradictions={state.contradictions}
-            evidence={state.retrieved_evidence || []}
-            onSelectDocument={handleOpenDocument}
-          />
-        </section>
-      )}
+          {/* Historical Comparison if similar incident relationships detected */}
+          {state.relationships && state.relationships.length > 0 && (
+            <section aria-label="Historical Comparison">
+              <HistoricalComparison
+                relationships={state.relationships}
+                evidence={state.retrieved_evidence || []}
+                onSelectDocument={handleOpenDocument}
+              />
+            </section>
+          )}
 
-      {/* Historical Comparison if similar incident relationships detected */}
-      {state.relationships && state.relationships.length > 0 && (
-        <section aria-label="Historical Comparison">
-          <HistoricalComparison
-            relationships={state.relationships}
-            evidence={state.retrieved_evidence || []}
-            onSelectDocument={handleOpenDocument}
-          />
-        </section>
-      )}
+          {/* Autonomous Follow-Up Iterations (Phase 5 Differentiator) */}
+          <section aria-label="Follow-Up Investigation">
+            <FollowUpSection
+              iterationCount={state.iteration_count || 1}
+              followUpQueries={state.follow_up_queries || []}
+              openQuestions={state.open_questions || []}
+              evidence={state.retrieved_evidence || []}
+              isProviderLimited={isProviderLimited}
+              onSelectDocument={handleOpenDocument}
+            />
+          </section>
 
-      {/* Autonomous Follow-Up Iterations (Phase 5 Differentiator) */}
-      <section aria-label="Follow-Up Investigation">
-        <FollowUpSection
-          iterationCount={state.iteration_count || 1}
-          followUpQueries={state.follow_up_queries || []}
-          openQuestions={state.open_questions || []}
-          evidence={state.retrieved_evidence || []}
-          isProviderLimited={isProviderLimited}
-          onSelectDocument={handleOpenDocument}
-        />
-      </section>
+          {/* Open Questions Panel */}
+          <section aria-label="Open Questions">
+            <OpenQuestionsList
+              questions={state.open_questions || []}
+              onSelectDocument={handleOpenDocument}
+            />
+          </section>
+        </div>
 
-      {/* Open Questions Panel */}
-      <section aria-label="Open Questions">
-        <OpenQuestionsList
-          questions={state.open_questions || []}
-          onSelectDocument={handleOpenDocument}
-        />
-      </section>
+        {/* Right Column (30%) */}
+        <div className="xl:col-span-4 space-y-8 xl:sticky xl:top-24">
+          {/* Evidence Explorer */}
+          <section aria-label="Retrieved Evidence">
+            <EvidenceExplorer
+              evidence={state.retrieved_evidence || []}
+              sourceReferences={state.conclusion?.source_references || []}
+              onSelectDocument={handleOpenDocument}
+            />
+          </section>
 
-      {/* Evidence Explorer */}
-      <section aria-label="Retrieved Evidence">
-        <EvidenceExplorer
-          evidence={state.retrieved_evidence || []}
-          sourceReferences={state.conclusion?.source_references || []}
-          onSelectDocument={handleOpenDocument}
-        />
-      </section>
+          {/* Key Findings List (Moved to right column) */}
+          <section aria-label="Key Findings">
+            <FindingsList
+              findings={state.conclusion?.findings || []}
+              sourceReferences={state.conclusion?.source_references || []}
+              onSelectDocument={handleOpenDocument}
+            />
+          </section>
+        </div>
+      </div>
 
       {/* Document Detail Modal */}
       <DocumentModal

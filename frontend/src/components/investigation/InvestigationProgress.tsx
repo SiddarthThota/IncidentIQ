@@ -109,16 +109,16 @@ export function InvestigationProgress({ state }: InvestigationProgressProps) {
           let titleClass = 'text-muted-foreground'
 
           if (step.status === 'completed') {
-            icon = <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            borderClass = 'border-emerald-500/20 bg-emerald-500/5'
+            icon = <CheckCircle2 className="w-4 h-4 text-success" />
+            borderClass = 'border-success/30 bg-success-background shadow-sm'
             titleClass = 'text-foreground'
           } else if (step.status === 'in_progress') {
             icon = <Clock className="w-4 h-4 text-primary animate-spin" />
-            borderClass = 'border-primary/40 bg-primary/5'
+            borderClass = 'border-primary/30 bg-primary-light shadow-sm'
             titleClass = 'text-primary'
           } else if (step.status === 'failed') {
             icon = <AlertTriangle className="w-4 h-4 text-destructive" />
-            borderClass = 'border-destructive/30 bg-destructive/5'
+            borderClass = 'border-destructive/30 bg-destructive-background shadow-sm'
             titleClass = 'text-destructive'
           }
 

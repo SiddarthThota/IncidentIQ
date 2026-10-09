@@ -152,8 +152,9 @@ def test_top_k_bounds(retrieval_service, mock_search_repo):
     resp = retrieval_service.search(req)
     assert len(resp.results) == 3
 
-def test_retrieval_failure_handling(retrieval_service, mock_embedding_service):
+def test_retrieval_failure_handling(retrieval_service, mock_embedding_service, mock_search_repo):
     mock_embedding_service.generate_embeddings.return_value = []
+    mock_search_repo.fallback_search_chunks.return_value = []
     resp = retrieval_service.search(SearchRequest(query="test"))
     assert len(resp.results) == 0
     assert resp.insufficient_evidence is True
